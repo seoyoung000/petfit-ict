@@ -1,0 +1,11 @@
+# Arduino / PlatformIO 빌드 산출물
+build/
+.pio/
+.vscode/
+*.bin
+*.elf
+*.hex
+
+# 자격증명 (WiFi SSID/PW 등)
+secrets.h
+credentials.h

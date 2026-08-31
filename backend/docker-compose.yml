@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/app
+      - "../AI 모델 소스코드:/app/ai_models:ro"
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: petfit
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: petfit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

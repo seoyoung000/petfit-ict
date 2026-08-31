@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Native build
+android/build/
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+android/captures/
+android/.cxx/
+ios/build/
+ios/Pods/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+
+# Misc
+*.tsbuildinfo
+coverage/

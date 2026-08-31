@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "Petfit",
+    "slug": "petfit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.petfit.app",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "펫핏 브러쉬와 연결하기 위해 블루투스를 사용합니다.",
+        "NSBluetoothPeripheralUsageDescription": "펫핏 브러쉬와 연결하기 위해 블루투스를 사용합니다.",
+        "NSCameraUsageDescription": "반려동물의 피부 스캔 및 프로필 사진을 촬영합니다.",
+        "NSPhotoLibraryUsageDescription": "반려동물의 피부 사진을 선택합니다.",
+        "NSPhotoLibraryAddUsageDescription": "촬영한 스캔 사진을 저장합니다."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F7F2"
+      },
+      "package": "com.petfit.app",
+      "permissions": [
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#F5F7F2",
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#5BAD4E"
+        }
+      ],
+      "expo-asset",
+      "expo-router",
+      "expo-font",
+      "expo-secure-store"
+    ]
+  }
+}
