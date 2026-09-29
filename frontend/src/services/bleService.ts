@@ -12,7 +12,6 @@ const COMMANDS: Record<BrushCommand, number[]> = {
   START_SCAN:   [0x01],
   STOP_SCAN:    [0x02],
   DISPENSE:     [0x03],
-  SUCTION:      [0x04],
   STATUS:       [0x05],
 };
 

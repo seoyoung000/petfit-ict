@@ -105,8 +105,8 @@ export default function ReportScreen() {
           )}
         </View>
 
-        {/* Medication & Suction */}
-        {(currentScan.medication_dispensed > 0 || currentScan.suction_used > 0) && (
+        {/* Medication */}
+        {currentScan.medication_dispensed > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>처치 내역</Text>
             <View style={styles.treatRow}>
@@ -114,12 +114,6 @@ export default function ReportScreen() {
                 <View style={styles.treatItem}>
                   <Ionicons name="medical" size={18} color={colors.primary} />
                   <Text style={styles.treatText}>약물 분사 {currentScan.medication_dispensed}ml</Text>
-                </View>
-              )}
-              {currentScan.suction_used > 0 && (
-                <View style={styles.treatItem}>
-                  <Ionicons name="funnel" size={18} color={colors.lavender} />
-                  <Text style={styles.treatText}>흡입 처리 {currentScan.suction_used}초</Text>
                 </View>
               )}
             </View>

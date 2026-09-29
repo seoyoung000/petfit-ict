@@ -26,7 +26,6 @@ export default function ScanningScreen() {
   const [progress, setProgress] = useState(0);
   const [capturedImageUri, setCapturedImageUri] = useState<string | undefined>();
   const [medicationUsed, setMedicationUsed] = useState(0);
-  const [suctionUsed, setSuctionUsed] = useState(0);
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -115,7 +114,7 @@ export default function ScanningScreen() {
     if (!selectedPet) return;
     setPhase('uploading');
     try {
-      const scan = await uploadScan(selectedPet.id, capturedImageUri, medicationUsed, suctionUsed);
+      const scan = await uploadScan(selectedPet.id, capturedImageUri, medicationUsed);
       setPhase('done');
       void brushService.sendCommand('STOP_SCAN');
       nav.replace('Report', { scanId: scan.id });
@@ -129,12 +128,6 @@ export default function ScanningScreen() {
     await brushService.sendCommand('DISPENSE');
     setMedicationUsed((m) => m + 0.5);
     Alert.alert('약물 분사', '질환 부위에 약물을 분사했습니다.');
-  };
-
-  const suction = async () => {
-    await brushService.sendCommand('SUCTION');
-    setSuctionUsed((s) => s + 3);
-    Alert.alert('흡입 모듈', '이물질 흡입을 시작합니다.');
   };
 
   return (
@@ -199,13 +192,9 @@ export default function ScanningScreen() {
       {/* Module controls */}
       {phase !== 'uploading' && (
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.controlBtn} onPress={dispense} disabled={phase !== 'scanning'}>
-            <Ionicons name="medical" size={22} color={phase === 'scanning' ? colors.primary : colors.textLight} />
-            <Text style={[styles.controlLabel, phase !== 'scanning' && { color: colors.textLight }]}>약물 분사</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlBtn} onPress={suction} disabled={phase !== 'scanning'}>
-            <Ionicons name="funnel" size={22} color={phase === 'scanning' ? colors.lavender : colors.textLight} />
-            <Text style={[styles.controlLabel, { color: phase === 'scanning' ? colors.text : colors.textLight }]}>흡입 제거</Text>
+          <TouchableOpacity style={styles.controlBtn} onPress={dispense} disabled={!brushStatus.connected}>
+            <Ionicons name="medical" size={22} color={brushStatus.connected ? colors.primary : colors.textLight} />
+            <Text style={[styles.controlLabel, !brushStatus.connected && { color: colors.textLight }]}>약물 분사</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.controlBtn} onPress={pickOrCaptureScanImage}>
             <Ionicons name="image-outline" size={22} color={colors.info} />

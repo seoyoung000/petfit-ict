@@ -37,7 +37,6 @@ export interface Scan {
   severity?: Severity;
   diagnoses: DiagnosisItem[];
   medication_dispensed: number;
-  suction_used: number;
   notes?: string;
   scanned_at: string;
 }
@@ -59,7 +58,7 @@ export interface DiscoveredDevice {
   rssi: number;
 }
 
-export type BrushCommand = 'START_SCAN' | 'STOP_SCAN' | 'DISPENSE' | 'SUCTION' | 'STATUS';
+export type BrushCommand = 'START_SCAN' | 'STOP_SCAN' | 'DISPENSE' | 'STATUS';
 
 export interface BrushStatus {
   connected: boolean;

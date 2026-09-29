@@ -27,12 +27,6 @@ const SLIDES = [
     desc: '브러쉬 모 사이로 약물이\n질환 부위에 정밀하게 투약돼요.',
     bg: '#FEF3E9',
   },
-  {
-    emoji: '🐛',
-    title: '진드기도\n스트레스 없이 제거',
-    desc: '이물질 발견 시 저소음 흡입으로\n반려동물이 놀라지 않게 처리해요.',
-    bg: '#E8F4FD',
-  },
 ];
 
 export default function OnboardingScreen() {

@@ -10,7 +10,7 @@ interface ScanState {
   isUploading: boolean;
   setScanning: (v: boolean) => void;
   setBrushStatus: (s: Partial<BrushStatus>) => void;
-  uploadScan: (petId: string, imageUri?: string, medication?: number, suction?: number) => Promise<Scan>;
+  uploadScan: (petId: string, imageUri?: string, medication?: number) => Promise<Scan>;
   fetchHistory: (petId: string) => Promise<void>;
   fetchScan: (scanId: string) => Promise<void>;
   clearCurrentScan: () => void;
@@ -28,13 +28,12 @@ export const useScanStore = create<ScanState>((set) => ({
   setBrushStatus: (s) =>
     set((prev) => ({ brushStatus: { ...prev.brushStatus, ...s } })),
 
-  uploadScan: async (petId, imageUri, medication = 0, suction = 0) => {
+  uploadScan: async (petId, imageUri, medication = 0) => {
     set({ isUploading: true });
     try {
       const form = new FormData();
       form.append('pet_id', petId);
       form.append('medication_dispensed', String(medication));
-      form.append('suction_used', String(suction));
       if (imageUri) {
         form.append('file', {
           uri: imageUri,
