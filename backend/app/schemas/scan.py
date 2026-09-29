@@ -19,7 +19,6 @@ class ScanResponse(BaseModel):
     severity: Optional[str]
     diagnoses: List[DiagnosisItem]
     medication_dispensed: float
-    suction_used: int
     notes: Optional[str]
     scanned_at: datetime
 

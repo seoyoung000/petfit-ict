@@ -21,7 +21,6 @@ class Scan(Base):
     diagnoses = Column(JSON, default=list)
 
     medication_dispensed = Column(Float, default=0.0)   # ml dispensed
-    suction_used = Column(Integer, default=0)           # seconds of suction
 
     notes = Column(String, nullable=True)
     scanned_at = Column(DateTime, server_default=func.now())

@@ -9,7 +9,7 @@ from app.models.user import User
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
-Command = Literal["START_SCAN", "STOP_SCAN", "DISPENSE", "SUCTION", "STATUS"]
+Command = Literal["START_SCAN", "STOP_SCAN", "DISPENSE", "STATUS"]
 
 
 class DeviceInfo(BaseModel):
@@ -118,7 +118,5 @@ def command(device_id: str, body: CommandRequest, current_user: User = Depends(g
         d["scanning"] = False
     elif cmd == "DISPENSE":
         d["medication"] = max(0, d["medication"] - 1)
-    elif cmd == "SUCTION":
-        pass
     d["last_seen"] = datetime.now(timezone.utc)
     return CommandResponse(ok=True, status=_to_status(d))

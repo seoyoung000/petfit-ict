@@ -27,7 +27,6 @@ def _enrich(scan: Scan) -> ScanResponse:
 async def upload_scan(
     pet_id: str = Form(...),
     medication_dispensed: float = Form(0.0),
-    suction_used: int = Form(0),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -55,7 +54,6 @@ async def upload_scan(
         severity=severity,
         diagnoses=diagnoses_dict,
         medication_dispensed=medication_dispensed,
-        suction_used=suction_used,
     )
     db.add(scan)
     db.commit()
