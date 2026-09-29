@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  ActivityIndicator, Alert, TextInput,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { brushService, BrushMode, DiscoveredDevice } from '@/services/brushService';
+import { brushService, DiscoveredDevice } from '@/services/brushService';
 import { useScanStore } from '@/store/useScanStore';
 import { useTheme } from '@/theme/useTheme';
 import { RootStackParams } from '@/navigation/AppNavigator';
@@ -19,25 +19,10 @@ export default function BrushConnectScreen() {
   const [scanning, setScanning] = useState(false);
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [connecting, setConnecting] = useState<string | null>(null);
-  const [mode, setMode] = useState<BrushMode>(brushService.currentMode);
-  const [wifiHost, setWifiHost] = useState(brushService.wifiHost);
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const transport = brushService.transport;
-  const isBle = transport === 'ble';
-  const isWifi = transport === 'wifi';
-
-  const changeMode = (m: BrushMode) => {
-    brushService.setMode(m);
-    setMode(m);
-    setDevices([]);
-  };
-
-  const changeHost = (h: string) => {
-    setWifiHost(h);
-    brushService.setWifiHost(h);
-  };
+  const isBle = brushService.transport === 'ble';
 
   useEffect(() => {
     return () => {
@@ -93,53 +78,13 @@ export default function BrushConnectScreen() {
 
       <Text style={styles.title}>브러쉬 연결</Text>
       <Text style={styles.subtitle}>
-        {isWifi
-          ? '같은 WiFi에 연결된 펫핏 기기를 검색해요'
-          : isBle
-            ? '주변 펫핏 기기를 블루투스로 검색해요'
-            : '데모 모드: 가상 펫핏 기기를 검색해요'}
+        {isBle
+          ? '주변 펫핏 기기를 블루투스로 검색해요'
+          : '데모 모드: 가상 펫핏 기기를 검색해요'}
       </Text>
 
-      {/* 연결 방식 선택 */}
-      <View style={styles.modeToggle}>
-        {(['ble', 'wifi'] as BrushMode[]).map((m) => {
-          const active = mode === m;
-          return (
-            <TouchableOpacity
-              key={m}
-              style={[styles.modeBtn, active && styles.modeBtnActive]}
-              onPress={() => changeMode(m)}
-            >
-              <Ionicons
-                name={m === 'ble' ? 'bluetooth' : 'wifi'}
-                size={16}
-                color={active ? colors.white : colors.textSecondary}
-              />
-              <Text style={[styles.modeBtnText, active && styles.modeBtnTextActive]}>
-                {m === 'ble' ? '블루투스' : 'WiFi'}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {mode === 'ble' && brushService.unavailableReason && (
+      {brushService.unavailableReason && (
         <Text style={styles.noticeText}>{brushService.unavailableReason}</Text>
-      )}
-
-      {mode === 'wifi' && (
-        <View style={styles.hostRow}>
-          <Ionicons name="globe-outline" size={16} color={colors.textSecondary} />
-          <TextInput
-            style={styles.hostInput}
-            value={wifiHost}
-            onChangeText={changeHost}
-            placeholder="petfit.local 또는 기기 IP"
-            placeholderTextColor={colors.textLight}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
       )}
 
       {/* Illustration */}
@@ -159,7 +104,7 @@ export default function BrushConnectScreen() {
         {scanning ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Ionicons name={mode === 'wifi' ? 'wifi' : 'bluetooth'} size={20} color={colors.white} />
+          <Ionicons name="bluetooth" size={20} color={colors.white} />
         )}
         <Text style={styles.scanBtnText}>{scanning ? '검색 중...' : '기기 검색'}</Text>
       </TouchableOpacity>
@@ -215,40 +160,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   title: { fontSize: 24, fontWeight: '800', color: colors.text },
   subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 6 },
   noticeText: { fontSize: 12, color: colors.textLight, marginTop: 8 },
-  modeToggle: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 16,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  modeBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 9,
-  },
-  modeBtnActive: { backgroundColor: colors.primary },
-  modeBtnText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
-  modeBtnTextActive: { color: colors.white },
-  hostRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  hostInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: colors.text },
   illustration: { alignItems: 'center', justifyContent: 'center', height: 160, marginTop: 24, marginBottom: 24 },
   ring: {
     position: 'absolute',
