@@ -20,7 +20,6 @@
  *     0x01 START_SCAN  → 촬영 후 이미지를 BLE로 전송
  *     0x02 STOP_SCAN
  *     0x03 DISPENSE
- *     0x04 SUCTION
  *     0x05 STATUS      → [0x05, battery, medication, flags] 로 응답
  *     0x10 ...         → WiFi 자격증명 프레임(여기선 무시)
  *
@@ -146,10 +145,6 @@ void handleCommand(const uint8_t* data, size_t len) {
       break;
     case 0x03: // DISPENSE (카메라 보드엔 모듈 없음 → ack 만)
       Serial.println("CMD: DISPENSE");
-      sendStatus();
-      break;
-    case 0x04: // SUCTION
-      Serial.println("CMD: SUCTION");
       sendStatus();
       break;
     case 0x05: // STATUS
