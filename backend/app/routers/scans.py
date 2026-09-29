@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
@@ -41,7 +42,9 @@ async def upload_scan(
     if file:
         contents = await file.read()
         image_key = upload_image(contents, prefix=f"scans/{pet_id}")
-        diagnoses = run_inference(contents, species=pet.species)
+        # 동기 TF 추론이라 스레드풀로 넘긴다. 안 그러면 추론하는 동안
+        # 이벤트 루프가 막혀서 다른 요청까지 전부 대기하게 된다.
+        diagnoses = await run_in_threadpool(run_inference, contents, pet.species)
 
     diagnoses_dict = [d.model_dump() for d in diagnoses]
     health_score = calculate_health_score(diagnoses)

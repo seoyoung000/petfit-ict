@@ -1,21 +1,33 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
+from starlette.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.database import Base, engine
 from app.routers import auth, pets, scans, devices
+from app.services.ai_service import warmup_models
 import app.models  # noqa: F401 – ensures all models are registered
 
 settings = get_settings()
 
 Base.metadata.create_all(bind=engine)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 요청 경로 밖에서 모델 로딩 비용을 미리 치른다.
+    await run_in_threadpool(warmup_models)
+    yield
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
+    lifespan=lifespan,
 )
 
 app.add_middleware(

@@ -88,7 +88,13 @@ DOG_MODELS: List[ModelConfig] = [
 ]
 
 CAT_MODELS: List[ModelConfig] = [
-    # 추후 추가: classification/workspace/data/cat/result_cla/binary_A2
+    ModelConfig(
+        name="cat_binary_A2",
+        relpath="classification/workspace/data/cat/result_cla/binary_A2/model",
+        kind="binary",
+        covers=["A2"],
+        binary_code="A2",
+    ),
 ]
 
 SPECIES_MODELS: Dict[str, List[ModelConfig]] = {
@@ -231,8 +237,27 @@ def _real_inference(image_bytes: bytes, species: str) -> List[DiagnosisItem]:
 # Public API
 # ---------------------------------------------------------------------------
 
+def warmup_models() -> None:
+    """
+    앱 시작 시 모델을 미리 로드한다.
+
+    이걸 안 하면 첫 스캔 요청이 들어올 때 lazy 로딩이 일어나서,
+    그 요청을 보낸 사용자만 모델 로딩 시간을 통째로 떠안게 된다.
+    mock 모드에서는 모델이 필요 없으므로 건너뛴다.
+    """
+    if settings.AI_USE_MOCK:
+        return
+    _load_all_models()
+
+
 def run_inference(image_bytes: bytes, species: str = "dog") -> List[DiagnosisItem]:
-    """이미지 bytes + 반려동물 종 → 진단 결과 리스트."""
+    """
+    이미지 bytes + 반려동물 종 → 진단 결과 리스트.
+
+    TensorFlow 추론은 CPU를 오래 붙잡는 동기 작업이다.
+    async 라우터에서 직접 부르면 이벤트 루프가 멈추므로
+    반드시 run_in_threadpool 등으로 위임해서 호출할 것.
+    """
     if settings.AI_USE_MOCK:
         return _mock_result()
     return _real_inference(image_bytes, species)
