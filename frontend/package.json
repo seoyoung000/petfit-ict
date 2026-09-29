@@ -1,5 +1,5 @@
 {
-  "name": "petfit-app",
+  "name": "petfit-frontend",
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
