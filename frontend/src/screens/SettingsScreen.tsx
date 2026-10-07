@@ -36,7 +36,7 @@ export default function SettingsScreen() {
       {/* Profile info */}
       <View style={styles.profileCard}>
         <View style={styles.profileAvatar}>
-          <Text style={styles.profileEmoji}>👤</Text>
+          <Ionicons name="person" size={26} color={colors.primaryDark} />
         </View>
         <View>
           <Text style={styles.profileName}>{user?.name}</Text>
@@ -120,7 +120,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     borderColor: colors.border,
   },
   profileAvatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' },
-  profileEmoji: { fontSize: 26 },
   profileName: { fontSize: 17, fontWeight: '700', color: colors.text },
   profileEmail: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   section: { paddingHorizontal: 16, marginTop: 4 },

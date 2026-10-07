@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTheme } from '@/theme/useTheme';
@@ -34,7 +35,11 @@ export default function SplashScreen() {
     <View style={styles.container}>
       <Animated.View style={[styles.logoWrap, { opacity, transform: [{ scale }] }]}>
         <View style={styles.logoBall}>
-          <Text style={styles.logoEmoji}>🐾</Text>
+          {/* 예전 발바닥 이모지처럼 두 개를 대각선으로 배치. 이모지는 색을 못 바꿔서 아이콘으로 그린다. */}
+          <View style={styles.pawPair}>
+            <Ionicons name="paw" size={30} color={colors.background} style={styles.pawTop} />
+            <Ionicons name="paw" size={30} color={colors.background} style={styles.pawBottom} />
+          </View>
         </View>
         <Text style={styles.logoText}>Petfit</Text>
         <Text style={styles.tagline}>빗질 한 번으로 진단부터 케어까지</Text>
@@ -64,7 +69,9 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     shadowRadius: 16,
     elevation: 10,
   },
-  logoEmoji: { fontSize: 44 },
+  pawPair: { width: 56, height: 56 },
+  pawTop: { position: 'absolute', top: 0, left: 0, transform: [{ rotate: '-18deg' }] },
+  pawBottom: { position: 'absolute', bottom: 0, right: 0, transform: [{ rotate: '12deg' }] },
   logoText: {
     fontSize: 36,
     fontWeight: '800',

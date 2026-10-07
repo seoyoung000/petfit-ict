@@ -11,6 +11,7 @@ import { usePetStore } from '@/store/usePetStore';
 import { resolveMediaUrl } from '@/services/api';
 import { useScanStore } from '@/store/useScanStore';
 import { useTheme } from '@/theme/useTheme';
+import SpeciesIcon from '@/components/SpeciesIcon';
 import { RootStackParams } from '@/navigation/AppNavigator';
 import SeverityBadge from '@/components/SeverityBadge';
 import HealthScoreRing from '@/components/HealthScoreRing';
@@ -54,7 +55,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>안녕하세요, {user?.name}님 👋</Text>
+            <Text style={styles.greeting}>안녕하세요, {user?.name}님</Text>
             <Text style={styles.subGreeting}>오늘도 함께 케어해요</Text>
           </View>
           <TouchableOpacity onPress={() => nav.navigate('Settings')} style={styles.settingBtn}>
@@ -76,9 +77,7 @@ export default function HomeScreen() {
                     <Image source={{ uri: resolveMediaUrl(selectedPet.profile_image_url) }} style={styles.petAvatarImage} />
                   ) : (
                     <View style={styles.petAvatar}>
-                      <Text style={styles.petAvatarEmoji}>
-                        {selectedPet.species === 'cat' ? '🐱' : '🐶'}
-                      </Text>
+                      <SpeciesIcon species={selectedPet.species} size={28} color={colors.primaryDark} />
                     </View>
                   )}
                   <View style={{ flex: 1 }}>
@@ -166,7 +165,7 @@ export default function HomeScreen() {
                   </View>
                   <Text style={styles.reportDesc}>
                     {latestScan.condition_count === 0
-                      ? '이상이 발견되지 않았어요 ✨'
+                      ? '이상이 발견되지 않았어요'
                       : `${latestScan.condition_count}개의 피부 상태가 감지됐어요`}
                   </Text>
                   <Text style={styles.reportLink}>자세히 보기 →</Text>
@@ -186,7 +185,7 @@ export default function HomeScreen() {
           </>
         ) : (
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyEmoji}>🐾</Text>
+            <Ionicons name="paw" size={56} color={colors.primary} />
             <Text style={styles.emptyTitle}>반려동물을 등록해주세요</Text>
             <Text style={styles.emptyDesc}>프로필을 등록하면 피부 케어를 시작할 수 있어요</Text>
             <TouchableOpacity
@@ -289,7 +288,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     justifyContent: 'center',
     alignItems: 'center',
   },
-  petAvatarEmoji: { fontSize: 28 },
   petAvatarImage: { width: 52, height: 52, borderRadius: 26 },
   petName: { fontSize: 18, fontWeight: '700', color: colors.text },
   petBreed: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
@@ -329,7 +327,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   reportLink: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   statsRow: { flexDirection: 'row', gap: 10 },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 60, gap: 12 },
-  emptyEmoji: { fontSize: 56 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.text },
   emptyDesc: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   addPetBtn: { backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 32, paddingVertical: 14, marginTop: 8 },

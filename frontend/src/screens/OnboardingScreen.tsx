@@ -2,30 +2,31 @@ import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/useTheme';
 import { AuthStackParams } from '@/navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
 type Nav = StackNavigationProp<AuthStackParams, 'Onboarding'>;
 
-const SLIDES = [
+const SLIDES: { icon: keyof typeof Ionicons.glyphMap; title: string; desc: string; bg: string }[] = [
   {
-    emoji: '🪮',
+    icon: 'brush',
     title: '빗질 한 번으로\n피부 상태 스캔',
     desc: '내장 카메라가 털 속 피부를\n실시간으로 촬영하고 분석해요.',
-    bg: '#EDF7EA',
+    bg: '#EEF4E4',
   },
   {
-    emoji: '🧠',
+    icon: 'sparkles',
     title: 'AI가 진단하고\n리포트로 알려드려요',
     desc: '아토피, 세균성 피부염 등\n8가지 피부 질환을 조기에 발견해요.',
-    bg: '#F0EBFA',
+    bg: '#E6EEDA',
   },
   {
-    emoji: '💊',
+    icon: 'medkit',
     title: '처방약을 직접\n환부에 분사해요',
     desc: '브러쉬 모 사이로 약물이\n질환 부위에 정밀하게 투약돼요.',
-    bg: '#FEF3E9',
+    bg: '#F7EDE2',
   },
 ];
 
@@ -57,7 +58,7 @@ export default function OnboardingScreen() {
         keyExtractor={(_, i) => String(i)}
         renderItem={({ item }) => (
           <View style={[styles.slide, { backgroundColor: item.bg }]}>
-            <Text style={styles.emoji}>{item.emoji}</Text>
+            <Ionicons name={item.icon} size={80} color={colors.primary} />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.desc}</Text>
           </View>
@@ -94,7 +95,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     paddingHorizontal: 32,
     gap: 20,
   },
-  emoji: { fontSize: 80 },
   title: { fontSize: 26, fontWeight: '700', color: colors.text, textAlign: 'center', lineHeight: 36 },
   desc: { fontSize: 16, color: colors.textSecondary, textAlign: 'center', lineHeight: 24 },
   footer: {

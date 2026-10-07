@@ -18,10 +18,10 @@ type Nav = StackNavigationProp<RootStackParams>;
 type Params = RouteProp<RootStackParams, 'Report'>;
 
 const SEVERITY_DESC = {
-  normal: { label: '정상', desc: '피부 상태가 양호해요!', color: baseColors.normal, emoji: '✨' },
-  minor: { label: '경미한 이상', desc: '가벼운 증상이 발견됐어요.', color: baseColors.minor, emoji: '🔍' },
-  warning: { label: '주의 필요', desc: '수의사 상담을 권장해요.', color: baseColors.warning, emoji: '⚠️' },
-  critical: { label: '즉시 진료 필요', desc: '가능한 빨리 동물병원을 방문하세요.', color: baseColors.critical, emoji: '🚨' },
+  normal: { label: '정상', desc: '피부 상태가 양호해요!', color: baseColors.normal, icon: 'checkmark-circle' as const },
+  minor: { label: '경미한 이상', desc: '가벼운 증상이 발견됐어요.', color: baseColors.minor, icon: 'search' as const },
+  warning: { label: '주의 필요', desc: '수의사 상담을 권장해요.', color: baseColors.warning, icon: 'warning' as const },
+  critical: { label: '즉시 진료 필요', desc: '가능한 빨리 동물병원을 방문하세요.', color: baseColors.critical, icon: 'alert-circle' as const },
 };
 
 export default function ReportScreen() {
@@ -63,7 +63,7 @@ export default function ReportScreen() {
         {/* Score card */}
         <View style={[styles.scoreCard, { borderColor: sev.color }]}>
           <View style={styles.scoreLeft}>
-            <Text style={styles.sevEmoji}>{sev.emoji}</Text>
+            <Ionicons name={sev.icon} size={32} color={sev.color} />
             <View>
               <Text style={[styles.sevLabel, { color: sev.color }]}>{sev.label}</Text>
               <Text style={styles.sevDesc}>{sev.desc}</Text>
@@ -94,7 +94,7 @@ export default function ReportScreen() {
           </Text>
           {currentScan.diagnoses.length === 0 ? (
             <View style={styles.normalCard}>
-              <Text style={styles.normalEmoji}>🌿</Text>
+              <Ionicons name="leaf" size={40} color={colors.primary} />
               <Text style={styles.normalText}>피부 이상 없음</Text>
               <Text style={styles.normalSub}>계속 케어를 유지해주세요</Text>
             </View>
@@ -165,7 +165,7 @@ const createDiagStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.cre
   name: { fontSize: 15, fontWeight: '700', color: colors.text },
   area: { fontSize: 12, color: colors.textSecondary, backgroundColor: colors.lavenderLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   barBg: { height: 6, backgroundColor: colors.border, borderRadius: 3 },
-  barFill: { height: '100%', backgroundColor: colors.warning, borderRadius: 3 },
+  barFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 3 },
   conf: { fontSize: 12, color: colors.textSecondary },
   action: { fontSize: 12, color: colors.primary, fontWeight: '600', flex: 1, textAlign: 'right' },
 });
@@ -195,14 +195,12 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     borderWidth: 2,
   },
   scoreLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  sevEmoji: { fontSize: 32 },
   sevLabel: { fontSize: 18, fontWeight: '700' },
   sevDesc: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   section: { paddingHorizontal: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 10 },
   scanImage: { width: '100%', height: 200, borderRadius: 16 },
   normalCard: { backgroundColor: colors.primary + '1A', borderRadius: 16, padding: 24, alignItems: 'center', gap: 6 },
-  normalEmoji: { fontSize: 40 },
   normalText: { fontSize: 17, fontWeight: '700', color: colors.primary },
   normalSub: { fontSize: 13, color: colors.textSecondary },
   treatRow: { gap: 8 },

@@ -80,7 +80,7 @@ export default function HistoryScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📋</Text>
+            <Ionicons name="document-text-outline" size={48} color={colors.primary} />
             <Text style={styles.emptyTitle}>스캔 기록이 없어요</Text>
             <Text style={styles.emptyDesc}>첫 스캔을 시작해보세요</Text>
           </View>
@@ -119,7 +119,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   cardDesc: { fontSize: 15, fontWeight: '600', color: colors.text, marginTop: 2 },
   cardRight: { alignItems: 'flex-end', gap: 2 },
   empty: { flex: 1, alignItems: 'center', marginTop: 80, gap: 10 },
-  emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   emptyDesc: { fontSize: 14, color: colors.textSecondary },
 });

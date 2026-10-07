@@ -92,7 +92,7 @@ export default function BrushConnectScreen() {
         <View style={[styles.ring, { width: 160, height: 160, opacity: 0.15 }]} />
         <View style={[styles.ring, { width: 120, height: 120, opacity: 0.25 }]} />
         <View style={styles.brushIcon}>
-          <Text style={{ fontSize: 48 }}>🪮</Text>
+          <Ionicons name="brush" size={40} color={colors.primary} />
         </View>
       </View>
 

@@ -1,10 +1,10 @@
 // 테마 무관 고정 색상 (배경, 텍스트, 보더, 시스템 색)
 export const baseColors = {
-  // Severity (고정 — 의료적 의미 변하면 안 됨)
-  normal: '#5BAD4E',
-  minor: '#F7C948',
-  warning: '#F2A65A',
-  critical: '#EF5350',
+  // Severity — 정상→경미→주의→심각 순서가 구분돼야 함. 메인 컬러와 톤을 맞춘 저채도 색.
+  normal: '#A9CC7A',
+  minor: '#D4C77E',
+  warning: '#D9A877',
+  critical: '#CF8A7A',
 
   // Neutral
   background: '#F5F7F2',
@@ -19,9 +19,9 @@ export const baseColors = {
   textWhite: '#FFFFFF',
 
   // State
-  success: '#5BAD4E',
-  error: '#EF5350',
-  info: '#42A5F5',
+  success: '#A9CC7A',
+  error: '#CF8A7A',
+  info: '#8FB3A8',
 
   // Misc
   black: '#000000',
@@ -41,12 +41,12 @@ export const themes: Record<ThemeName, {
   warm: string;
 }> = {
   green: {
-    primary: '#5BAD4E',
-    primaryLight: '#A8D5A2',
-    primaryDark: '#3D8A33',
-    lavender: '#C8B8E8',
-    lavenderLight: '#E8E0F5',
-    warm: '#F2A65A',
+    primary: '#A9CC7A',
+    primaryLight: '#CBE0AF',
+    primaryDark: '#7F995C',
+    lavender: '#BFD1A6',
+    lavenderLight: '#E6EEDA',
+    warm: '#D9A877',
   },
   pink: {
     primary: '#F2A5B8',

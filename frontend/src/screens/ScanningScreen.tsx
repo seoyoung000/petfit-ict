@@ -153,9 +153,11 @@ export default function ScanningScreen() {
       <View style={styles.center}>
         <Animated.View style={[styles.pulseRing, { transform: [{ scale: pulse }] }]} />
         <View style={styles.scanCircle}>
-          <Text style={styles.scanEmoji}>
-            {phase === 'uploading' ? '⏳' : phase === 'done' ? '✅' : '🔬'}
-          </Text>
+          <Ionicons
+            name={phase === 'uploading' ? 'hourglass-outline' : phase === 'done' ? 'checkmark-circle' : 'scan'}
+            size={36}
+            color={colors.primary}
+          />
           {phase === 'scanning' && (
             <Text style={styles.progressText}>{progress}%</Text>
           )}
@@ -267,7 +269,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     shadowRadius: 12,
     elevation: 6,
   },
-  scanEmoji: { fontSize: 36 },
   progressText: { fontSize: 16, fontWeight: '700', color: colors.primary },
   progressBar: { height: 6, backgroundColor: colors.border, borderRadius: 3, marginVertical: 12, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 3 },

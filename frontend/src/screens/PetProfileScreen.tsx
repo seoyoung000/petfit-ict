@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { usePetStore } from '@/store/usePetStore';
 import { petAPI, resolveMediaUrl } from '@/services/api';
 import { useTheme } from '@/theme/useTheme';
+import SpeciesIcon from '@/components/SpeciesIcon';
 import { RootStackParams } from '@/navigation/AppNavigator';
 import { Pet } from '@/types';
 
@@ -128,7 +129,7 @@ export default function PetProfileScreen() {
             <Image source={avatarSrc} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarEmoji}>{species === 'cat' ? '🐱' : '🐶'}</Text>
+              <SpeciesIcon species={species} size={44} color={colors.primaryDark} />
             </View>
           )}
           <View style={styles.cameraIcon}>
@@ -145,9 +146,12 @@ export default function PetProfileScreen() {
               style={[styles.toggleBtn, species === s && styles.toggleBtnActive]}
               onPress={() => setSpecies(s)}
             >
-              <Text style={[styles.toggleText, species === s && styles.toggleTextActive]}>
-                {s === 'dog' ? '🐶 강아지' : '🐱 고양이'}
-              </Text>
+              <View style={styles.toggleContent}>
+                <SpeciesIcon species={s} size={18} color={species === s ? colors.primaryDark : colors.textSecondary} />
+                <Text style={[styles.toggleText, species === s && styles.toggleTextActive]}>
+                  {s === 'dog' ? '강아지' : '고양이'}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -218,7 +222,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   avatarWrap: { alignSelf: 'center', marginBottom: 24 },
   avatar: { width: 96, height: 96, borderRadius: 48 },
   avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' },
-  avatarEmoji: { fontSize: 44 },
   cameraIcon: { position: 'absolute', bottom: 0, right: 0, backgroundColor: colors.primary, borderRadius: 14, padding: 6 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginTop: 12, marginBottom: 6 },
   input: {
@@ -234,6 +237,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   toggle: { flexDirection: 'row', gap: 8 },
   toggleBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.border, alignItems: 'center' },
   toggleBtnActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  toggleContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   toggleText: { fontSize: 14, color: colors.textSecondary },
   toggleTextActive: { color: colors.primaryDark, fontWeight: '700' },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },

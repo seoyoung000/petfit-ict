@@ -4,10 +4,10 @@ import { colors } from '@/theme/colors';
 import { Severity } from '@/types';
 
 const CONFIG: Record<Severity, { label: string; bg: string; text: string }> = {
-  normal:   { label: '정상',        bg: '#EDF7EA', text: colors.normal },
-  minor:    { label: '경미',        bg: '#FEF9E7', text: '#C9A227' },
-  warning:  { label: '주의',        bg: '#FEF3E9', text: colors.warning },
-  critical: { label: '즉시 진료',   bg: '#FEECEC', text: colors.critical },
+  normal:   { label: '정상',        bg: '#EEF4E4', text: colors.normal },
+  minor:    { label: '경미',        bg: '#F6F2DF', text: colors.minor },
+  warning:  { label: '주의',        bg: '#F7EDE2', text: colors.warning },
+  critical: { label: '즉시 진료',   bg: '#F6E6E2', text: colors.critical },
 };
 
 export default function SeverityBadge({ severity }: { severity: Severity }) {

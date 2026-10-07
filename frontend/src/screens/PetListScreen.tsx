@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePetStore } from '@/store/usePetStore';
 import { resolveMediaUrl } from '@/services/api';
 import { useTheme } from '@/theme/useTheme';
+import SpeciesIcon from '@/components/SpeciesIcon';
 import { RootStackParams } from '@/navigation/AppNavigator';
 import { Pet } from '@/types';
 
@@ -68,7 +69,7 @@ export default function PetListScreen() {
       >
         {pets.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyEmoji}>🐾</Text>
+            <Ionicons name="paw" size={56} color={colors.primary} />
             <Text style={styles.emptyTitle}>등록된 반려동물이 없어요</Text>
             <Text style={styles.emptyDesc}>오른쪽 위 + 버튼으로 등록해주세요</Text>
           </View>
@@ -86,9 +87,7 @@ export default function PetListScreen() {
                     <Image source={{ uri: resolveMediaUrl(pet.profile_image_url) }} style={styles.avatar} />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
-                      <Text style={styles.avatarEmoji}>
-                        {pet.species === 'cat' ? '🐱' : '🐶'}
-                      </Text>
+                      <SpeciesIcon species={pet.species} size={28} color={colors.primaryDark} />
                     </View>
                   )}
 
@@ -176,7 +175,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
   content: { paddingHorizontal: 16, paddingBottom: 32, gap: 10 },
 
   emptyWrap: { alignItems: 'center', paddingVertical: 80, gap: 8 },
-  emptyEmoji: { fontSize: 56 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   emptyDesc: { fontSize: 13, color: colors.textSecondary },
 
@@ -197,7 +195,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create(
     backgroundColor: colors.primaryLight,
     justifyContent: 'center', alignItems: 'center',
   },
-  avatarEmoji: { fontSize: 28 },
   info: { flex: 1, gap: 3 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { fontSize: 16, fontWeight: '700', color: colors.text },
