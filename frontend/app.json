@@ -52,7 +52,6 @@
         }
       ],
       "expo-asset",
-      "expo-router",
       "expo-font",
       "expo-secure-store"
     ]
