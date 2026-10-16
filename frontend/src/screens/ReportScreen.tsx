@@ -22,6 +22,7 @@ const SEVERITY_DESC = {
   minor: { label: '경미한 이상', desc: '가벼운 증상이 발견됐어요.', color: baseColors.minor, icon: 'search' as const },
   warning: { label: '주의 필요', desc: '수의사 상담을 권장해요.', color: baseColors.warning, icon: 'warning' as const },
   critical: { label: '즉시 진료 필요', desc: '가능한 빨리 동물병원을 방문하세요.', color: baseColors.critical, icon: 'alert-circle' as const },
+  unclassified: { label: '증상 미검출', desc: '정상 여부를 뜻하지 않으며, 사진만으로 판단하기 어려울 수 있어요.', color: baseColors.textSecondary, icon: 'help-circle' as const },
 };
 
 export default function ReportScreen() {
@@ -69,7 +70,7 @@ export default function ReportScreen() {
               <Text style={styles.sevDesc}>{sev.desc}</Text>
             </View>
           </View>
-          <HealthScoreRing score={currentScan.health_score ?? 0} size={76} />
+          {currentScan.health_score != null && <HealthScoreRing score={currentScan.health_score} size={76} />}
         </View>
 
         {/* Scan image */}
@@ -94,9 +95,9 @@ export default function ReportScreen() {
           </Text>
           {currentScan.diagnoses.length === 0 ? (
             <View style={styles.normalCard}>
-              <Ionicons name="leaf" size={40} color={colors.primary} />
-              <Text style={styles.normalText}>피부 이상 없음</Text>
-              <Text style={styles.normalSub}>계속 케어를 유지해주세요</Text>
+              <Ionicons name="help-circle-outline" size={40} color={colors.textSecondary} />
+              <Text style={styles.normalText}>학습된 증상 미검출</Text>
+              <Text style={styles.normalSub}>정상 판정은 아니며, 계속 신경 쓰이면 수의사와 상담하세요.</Text>
             </View>
           ) : (
             currentScan.diagnoses.map((d, i) => (

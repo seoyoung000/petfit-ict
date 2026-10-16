@@ -15,6 +15,47 @@ const COMMANDS: Record<BrushCommand, number[]> = {
   STATUS:       [0x05],
 };
 
+// 기기 → 앱 메시지 (petfit_cam_ble.ino 와 동일)
+const MSG_STATUS = 0x05; // [0x05, battery, medication, flags]
+const MSG_DISPENSE_RESULT = 0x08; // [0x08, result], result 0 = 펌프 작동 완료
+const IMG_BEGIN = 0xa0;  // [0xA0, len3, len2, len1, len0] 이후 JPEG 본문 조각들
+const IMG_END = 0xa1;    // [0xA1]
+const CMD_PREVIEW_START = 0x06; // 기기가 계속 촬영해 프레임을 연달아 보냄
+const CMD_PREVIEW_STOP = 0x07;
+// 크게 요청해야 사진 조각이 20바이트씩 쪼개지지 않는다.
+// BLE 값 하나는 최대 512바이트라 그보다 큰 조각은 안드로이드가 잘라버린다.
+// 515를 요청하면 MTU-3 = 512가 되지만, 안드로이드 14+는 요청값과 상관없이 517로 협상한다.
+// 그래서 조각 크기 상한(512)은 펌웨어(MAX_CHUNK)에서 지켜야 한다.
+const BLE_MTU = 515;
+const CAPTURE_TIMEOUT_MS = 30000;
+const DISPENSE_TIMEOUT_MS = 7000;
+
+// React Native(Hermes)에는 Node의 Buffer가 없다.
+// ble-plx는 값을 base64 문자열로 주고받으므로 atob/btoa로 바이트와 변환한다.
+function toBase64(bytes: ArrayLike<number>): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+
+function fromBase64(b64: string): Uint8Array {
+  const s = atob(b64);
+  const out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+}
+
+interface CaptureWaiter {
+  resolve: (jpegBase64: string) => void;
+  reject: (e: Error) => void;
+  onProgress?: (received: number, total: number) => void;
+}
+
+interface DispenseWaiter {
+  resolve: () => void;
+  reject: (e: Error) => void;
+}
+
 const DEFAULT_STATUS: BrushStatus = {
   connected: false,
   battery: 0,
@@ -36,6 +77,13 @@ class PetfitBLEService {
   private dataSub: (() => void) | null = null;
   private statusListeners = new Set<(s: BrushStatus) => void>();
   private pollHandle: ReturnType<typeof setInterval> | null = null;
+
+  // 사진 수신 상태: 헤더를 받으면 만들고, 끝 마커를 받으면 비운다
+  private image: { buf: Uint8Array; received: number } | null = null;
+  private captureWaiter: CaptureWaiter | null = null;
+  private dispenseWaiter: DispenseWaiter | null = null;
+  private dispenseTimer: ReturnType<typeof setTimeout> | null = null;
+  private previewListener: ((jpegBase64: string) => void) | null = null;
 
   private getManager(): BleManagerType | null {
     if (this.manager) return this.manager;
@@ -131,23 +179,23 @@ class PetfitBLEService {
     const target = this.deviceMap.get(device.id);
     if (!target) throw new Error('기기를 찾을 수 없습니다. 다시 검색해주세요.');
 
-    const connected = await target.connect();
+    // Android는 MTU를 직접 요청해야 커진다 (iOS는 자동)
+    const connected = await target.connect({ requestMTU: BLE_MTU });
     const discovered = await connected.discoverAllServicesAndCharacteristics();
     this.connectedDevice = discovered;
     this.latestStatus = { ...DEFAULT_STATUS, connected: true };
 
     // 예기치 않은 연결 해제 감지
     discovered.onDisconnected(() => {
+      this.image = null;
+      this.failCapture('기기 연결이 끊겼어요.');
+      this.failDispense('브러쉬 연결이 끊겨 분사 결과를 확인할 수 없어요.');
       this.latestStatus = { ...this.latestStatus, connected: false };
       this.emitStatus();
     });
 
-    // 기기 → 앱 알림 구독으로 상태 수신
-    this.dataSub = this.subscribeToData((data) => {
-      const partial = this.parseStatus(data);
-      this.latestStatus = { ...this.latestStatus, ...partial, connected: true };
-      this.emitStatus();
-    });
+    // 기기 → 앱 알림 구독 (상태 + 사진 조각)
+    this.dataSub = this.subscribeToData((data) => this.handleIncoming(data));
 
     // 초기 상태 요청 후 잠시 대기
     await this.sendCommand('STATUS');
@@ -156,6 +204,10 @@ class PetfitBLEService {
   }
 
   async disconnect(): Promise<void> {
+    this.previewListener = null;
+    this.image = null;
+    this.failCapture('기기 연결을 해제했어요.');
+    this.failDispense('브러쉬 연결이 해제되어 분사 결과를 확인할 수 없어요.');
     this.stopStatusPolling();
     this.dataSub?.();
     this.dataSub = null;
@@ -170,13 +222,71 @@ class PetfitBLEService {
   }
 
   async sendCommand(command: BrushCommand): Promise<void> {
-    if (!this.connectedDevice) return;
-    const bytes = Buffer.from(COMMANDS[command]).toString('base64');
+    if (!this.connectedDevice) throw new Error('기기가 연결되어 있지 않아요.');
+    await this.writeBytes(COMMANDS[command]);
+  }
+
+  // 카메라 보드가 모터 보드의 펌프 완료 회신을 BLE로 전달할 때까지 기다린다.
+  dispense(): Promise<void> {
+    if (!this.connectedDevice) return Promise.reject(new Error('브러쉬가 연결되어 있지 않아요.'));
+    if (this.dispenseWaiter) return Promise.reject(new Error('이미 분사 중이에요.'));
+
+    return new Promise((resolve, reject) => {
+      this.dispenseWaiter = { resolve, reject };
+      this.dispenseTimer = setTimeout(() => {
+        this.failDispense('펌프 작동 완료 응답을 받지 못했어요. 브러쉬와 모터 보드를 확인해주세요.');
+      }, DISPENSE_TIMEOUT_MS);
+      this.writeBytes(COMMANDS.DISPENSE).catch(() => {
+        this.failDispense('분사 명령을 브러쉬에 보내지 못했어요. 연결을 확인해주세요.');
+      });
+    });
+  }
+
+  private async writeBytes(bytes: number[]): Promise<void> {
+    if (!this.connectedDevice) throw new Error('기기가 연결되어 있지 않아요.');
     await this.connectedDevice.writeCharacteristicWithResponseForService(
       PETFIT_SERVICE_UUID,
       TX_CHAR_UUID,
-      bytes,
+      toBase64(bytes),
     );
+  }
+
+  // 카메라 미리보기: 기기가 보내는 프레임을 onFrame으로 계속 넘긴다. 반환값을 호출하면 중지.
+  // 미리보기를 모르는 예전 펌웨어는 명령을 무시하므로 프레임이 오지 않을 뿐 문제는 없다.
+  startPreview(onFrame: (jpegBase64: string) => void): () => void {
+    if (!this.connectedDevice) return () => {};
+    this.previewListener = onFrame;
+    this.writeBytes([CMD_PREVIEW_START]).catch(() => {});
+    return () => {
+      if (this.previewListener !== onFrame) return;
+      this.previewListener = null;
+      this.writeBytes([CMD_PREVIEW_STOP]).catch(() => {});
+    };
+  }
+
+  // 기기에 촬영을 시키고 JPEG을 base64로 받는다
+  captureImage(onProgress?: (received: number, total: number) => void): Promise<string> {
+    if (!this.connectedDevice) return Promise.reject(new Error('기기가 연결되어 있지 않아요.'));
+    if (this.captureWaiter) return Promise.reject(new Error('이미 촬영 중이에요.'));
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.image = null;
+        this.failCapture('기기에서 사진을 받지 못했어요. (시간 초과)');
+      }, CAPTURE_TIMEOUT_MS);
+      this.captureWaiter = {
+        resolve: (b64) => { clearTimeout(timer); resolve(b64); },
+        reject: (e) => { clearTimeout(timer); reject(e); },
+        onProgress,
+      };
+      this.sendCommand('START_SCAN').catch(() => this.failCapture('촬영 명령을 보내지 못했어요.'));
+    });
+  }
+
+  // 대기 중인 촬영 결과를 더 이상 기다리지 않는다 (기기가 보내던 조각은 버림)
+  cancelCapture(): void {
+    this.image = null;
+    this.failCapture('촬영을 취소했어요.');
   }
 
   startStatusPolling(
@@ -203,27 +313,6 @@ class PetfitBLEService {
       this.pollHandle = null;
     }
     this.statusListeners.clear();
-  }
-
-  // BLE-based WiFi provisioning. Frame: [0x10, ssidLen, ...ssid, pwdLen, ...pwd]
-  async sendWifiCredentials(ssid: string, password: string): Promise<void> {
-    if (!this.connectedDevice) return;
-    const ssidBytes = Buffer.from(ssid, 'utf8');
-    const pwdBytes = Buffer.from(password, 'utf8');
-    if (ssidBytes.length > 32 || pwdBytes.length > 64) {
-      throw new Error('SSID/비밀번호가 너무 깁니다.');
-    }
-    const frame = Buffer.concat([
-      Buffer.from([0x10, ssidBytes.length]),
-      ssidBytes,
-      Buffer.from([pwdBytes.length]),
-      pwdBytes,
-    ]);
-    await this.connectedDevice.writeCharacteristicWithResponseForService(
-      PETFIT_SERVICE_UUID,
-      TX_CHAR_UUID,
-      frame.toString('base64'),
-    );
   }
 
   get isConnected(): boolean {
@@ -259,16 +348,80 @@ class PetfitBLEService {
       RX_CHAR_UUID,
       (error, char) => {
         if (error || !char?.value) return;
-        const bytes = Buffer.from(char.value, 'base64');
-        onData(new Uint8Array(bytes));
+        onData(fromBase64(char.value));
       },
     );
     return () => sub.remove();
   }
 
+  // 기기에서 온 알림 한 건을 사진 조각 / 사진 시작 / 상태 중 하나로 처리
+  private handleIncoming(data: Uint8Array): void {
+    const img = this.image;
+    if (img) {
+      // 본문을 다 받기 전에는 첫 바이트가 무엇이든 사진 데이터다
+      // (본문 조각이 0x05나 0xA1로 시작해도 상태/끝 마커로 착각하면 안 됨)
+      if (img.received < img.buf.length) {
+        const n = Math.min(data.length, img.buf.length - img.received);
+        img.buf.set(data.subarray(0, n), img.received);
+        img.received += n;
+        this.captureWaiter?.onProgress?.(img.received, img.buf.length);
+        return;
+      }
+      this.image = null;
+      if (data.length === 1 && data[0] === IMG_END) {
+        const waiter = this.captureWaiter;
+        this.captureWaiter = null;
+        if (waiter) waiter.resolve(toBase64(img.buf));
+        else this.previewListener?.(toBase64(img.buf));
+      } else {
+        this.failCapture('사진을 받는 중 데이터가 어긋났어요. 다시 촬영해주세요.');
+      }
+      return;
+    }
+
+    if (data.length === 5 && data[0] === IMG_BEGIN) {
+      const len = ((data[1] << 24) | (data[2] << 16) | (data[3] << 8) | data[4]) >>> 0;
+      this.image = { buf: new Uint8Array(len), received: 0 };
+      this.captureWaiter?.onProgress?.(0, len);
+      return;
+    }
+
+    if (data.length >= 2 && data[0] === MSG_DISPENSE_RESULT) {
+      if (data[1] === 0) this.finishDispense();
+      else this.failDispense('펌프 작동을 확인하지 못했어요. 모터 보드 연결을 확인해주세요.');
+      return;
+    }
+
+    const partial = this.parseStatus(data);
+    this.latestStatus = { ...this.latestStatus, ...partial, connected: true };
+    this.emitStatus();
+  }
+
+  private failCapture(message: string): void {
+    const waiter = this.captureWaiter;
+    this.captureWaiter = null;
+    waiter?.reject(new Error(message));
+  }
+
+  private finishDispense(): void {
+    const waiter = this.dispenseWaiter;
+    this.dispenseWaiter = null;
+    if (this.dispenseTimer) clearTimeout(this.dispenseTimer);
+    this.dispenseTimer = null;
+    waiter?.resolve();
+  }
+
+  private failDispense(message: string): void {
+    const waiter = this.dispenseWaiter;
+    this.dispenseWaiter = null;
+    if (this.dispenseTimer) clearTimeout(this.dispenseTimer);
+    this.dispenseTimer = null;
+    waiter?.reject(new Error(message));
+  }
+
   private parseStatus(data: Uint8Array): Partial<BrushStatus> {
     // Protocol: [0x05, battery, medication, flags]
-    if (data[0] !== 0x05 || data.length < 4) return {};
+    if (data[0] !== MSG_STATUS || data.length < 4) return {};
     return {
       battery: data[1],
       medication: data[2],

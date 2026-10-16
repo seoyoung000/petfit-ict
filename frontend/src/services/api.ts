@@ -1,7 +1,21 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_PORT = 8000;
+
+// 개발 중에는 앱 번들을 내려준 PC(Metro) 주소로 백엔드를 찾는다.
+// 그래야 에뮬레이터든 같은 WiFi의 실기기(Expo Go)든 .env 수정 없이 붙는다.
+// localhost 계열이면 기기에서 PC를 가리키지 못하므로 .env 값을 쓴다.
+function resolveBaseUrl(): string {
+  const host = Constants.expoConfig?.hostUri?.split(':')[0];
+  if (__DEV__ && host && host !== 'localhost' && host !== '127.0.0.1') {
+    return `http://${host}:${API_PORT}`;
+  }
+  return process.env.EXPO_PUBLIC_API_URL || `http://localhost:${API_PORT}`;
+}
+
+const BASE_URL = resolveBaseUrl();
 
 /**
  * 서버가 내려준 이미지 경로를 실제 로드 가능한 URL로 변환.

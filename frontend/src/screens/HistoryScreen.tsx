@@ -42,7 +42,7 @@ export default function HistoryScreen() {
         style={styles.card}
         onPress={() => nav.navigate('Report', { scanId: item.id })}
       >
-        <HealthScoreRing score={item.health_score ?? 0} size={52} />
+        {item.health_score != null && <HealthScoreRing score={item.health_score} size={52} />}
         <View style={styles.cardBody}>
           <Text style={styles.cardDate}>
             {d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} ·{' '}
@@ -50,8 +50,8 @@ export default function HistoryScreen() {
           </Text>
           <Text style={styles.cardDesc}>
             {item.condition_count === 0
-              ? '이상 없음'
-              : `${item.condition_count}개 질환 감지`}
+              ? '학습된 증상 미검출'
+              : `${item.condition_count}개 피부 증상 감지`}
           </Text>
         </View>
         <View style={styles.cardRight}>

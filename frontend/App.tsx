@@ -1,7 +1,9 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import * as Notifications from 'expo-notifications';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
@@ -10,7 +12,14 @@ import AppNavigator from '@/navigation/AppNavigator';
 
 SplashScreen.preventAutoHideAsync();
 
-Notifications.setNotificationHandler({
+// Expo Go(SDK 53+)는 푸시 알림을 지원하지 않고, 모듈을 불러오기만 해도 에러를 띄운다.
+// 그래서 Expo Go에서는 expo-notifications를 아예 로드하지 않는다.
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+const Notifications: typeof import('expo-notifications') | null = isExpoGo
+  ? null
+  : require('expo-notifications');
+
+Notifications?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldShowBanner: true,
@@ -30,12 +39,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !Notifications) return;
     // Register push token after login
     Notifications.getExpoPushTokenAsync()
       .then(({ data }) => {
-        const platform = require('react-native').Platform.OS;
-        authAPI.updateDeviceToken(data, platform).catch(() => {});
+        authAPI.updateDeviceToken(data, Platform.OS).catch(() => {});
       })
       .catch(() => {});
   }, [user?.id]);
@@ -44,7 +52,9 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppNavigator />
+      <SafeAreaProvider>
+        <AppNavigator />
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

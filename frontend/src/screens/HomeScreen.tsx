@@ -94,7 +94,7 @@ export default function HomeScreen() {
                 </View>
                 {latestScan && (
                   <View style={styles.latestHealth}>
-                    <HealthScoreRing score={latestScan.health_score ?? 0} size={60} />
+                    {latestScan.health_score != null && <HealthScoreRing score={latestScan.health_score} size={60} />}
                     <SeverityBadge severity={latestScan.severity ?? 'normal'} />
                   </View>
                 )}
@@ -140,7 +140,7 @@ export default function HomeScreen() {
               <View style={styles.scanBtnInner}>
                 <Ionicons name="scan-outline" size={28} color={colors.white} />
                 <View>
-                  <Text style={styles.scanBtnTitle}>피부 스캔 시작</Text>
+                  <Text style={styles.scanBtnTitle}>피부 진단 시작</Text>
                   <Text style={styles.scanBtnSub}>브러쉬를 연결하고 빗질을 시작하세요</Text>
                 </View>
               </View>
@@ -165,8 +165,8 @@ export default function HomeScreen() {
                   </View>
                   <Text style={styles.reportDesc}>
                     {latestScan.condition_count === 0
-                      ? '이상이 발견되지 않았어요'
-                      : `${latestScan.condition_count}개의 피부 상태가 감지됐어요`}
+                      ? '학습된 증상은 감지되지 않았어요'
+                      : `${latestScan.condition_count}개의 피부 증상이 감지됐어요`}
                   </Text>
                   <Text style={styles.reportLink}>자세히 보기 →</Text>
                 </TouchableOpacity>
@@ -178,7 +178,7 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>이번 달 현황</Text>
               <View style={styles.statsRow}>
                 <StatCard icon="scan" label="총 스캔" value={`${history.length}회`} />
-                <StatCard icon="checkmark-circle" label="정상 판정" value={`${history.filter(s => s.severity === 'normal').length}회`} color={colors.primary} />
+                <StatCard icon="help-circle" label="증상 미검출" value={`${history.filter(s => s.severity === 'unclassified').length}회`} color={colors.primary} />
                 <StatCard icon="alert-circle" label="이상 감지" value={`${history.filter(s => s.severity !== 'normal').length}회`} color={colors.warning} />
               </View>
             </View>

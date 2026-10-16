@@ -26,7 +26,7 @@ export interface DiagnosisItem {
   action: string;
 }
 
-export type Severity = 'normal' | 'minor' | 'warning' | 'critical';
+export type Severity = 'normal' | 'minor' | 'warning' | 'critical' | 'unclassified';
 
 export interface Scan {
   id: string;

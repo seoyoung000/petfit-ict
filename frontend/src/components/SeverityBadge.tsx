@@ -8,6 +8,7 @@ const CONFIG: Record<Severity, { label: string; bg: string; text: string }> = {
   minor:    { label: '경미',        bg: '#F6F2DF', text: colors.minor },
   warning:  { label: '주의',        bg: '#F7EDE2', text: colors.warning },
   critical: { label: '즉시 진료',   bg: '#F6E6E2', text: colors.critical },
+  unclassified: { label: '증상 미검출', bg: '#EDF0F3', text: colors.textSecondary },
 };
 
 export default function SeverityBadge({ severity }: { severity: Severity }) {

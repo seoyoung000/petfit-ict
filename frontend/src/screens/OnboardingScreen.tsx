@@ -19,7 +19,7 @@ const SLIDES: { icon: keyof typeof Ionicons.glyphMap; title: string; desc: strin
   {
     icon: 'sparkles',
     title: 'AI가 진단하고\n리포트로 알려드려요',
-    desc: '아토피, 세균성 피부염 등\n8가지 피부 질환을 조기에 발견해요.',
+    desc: '피부 사진에서 보이는 증상을 확인하고\n필요하면 수의사 상담을 권해드려요.',
     bg: '#E6EEDA',
   },
   {

@@ -140,12 +140,14 @@ export default function BrushConnectScreen() {
         )}
       />
 
-      {/* Demo mode for testing without backend */}
+      {/* 기기 없이: 사진 첨부로 진단 */}
       <TouchableOpacity
         style={styles.demoBtn}
-        onPress={() => {
-          setBrushStatus({ connected: true, battery: 85, medication: 70, scanning: false });
-          nav.navigate('Scanning');
+        onPress={async () => {
+          // 이전에 연결해 둔 브러쉬가 남아 있으면 끊는다. 안 그러면 진단 화면이 브러쉬 카메라를 쓴다.
+          await brushService.disconnect().catch(() => {});
+          setBrushStatus({ connected: false, battery: 0, medication: 0, scanning: false });
+          nav.navigate('Scanning', { demo: true });
         }}
       >
         <Text style={styles.demoBtnText}>기기 없이 테스트 →</Text>

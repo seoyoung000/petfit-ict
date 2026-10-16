@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  Alert, Image,
+  Alert, Image, KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -109,7 +109,7 @@ export default function PetProfileScreen() {
     : undefined;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => nav.goBack()}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
@@ -122,7 +122,7 @@ export default function PetProfileScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Photo */}
         <TouchableOpacity style={styles.avatarWrap} onPress={pickPhoto}>
           {avatarSrc ? (
@@ -210,7 +210,7 @@ export default function PetProfileScreen() {
           <Text style={styles.saveBtnText}>{saving ? '저장 중...' : '저장하기'}</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
