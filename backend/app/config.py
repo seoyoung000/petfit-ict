@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # AI
     AI_MODEL_DIR: str = ""
     AI_CONFIDENCE_THRESHOLD: float = 0.4
+    # 질환/정상 2분류 모델은 질환 확률이 정상보다 높아야(>0.5) 질환으로 본다
+    AI_BINARY_THRESHOLD: float = 0.5
+    # 모델은 병변만 잘라낸 사진으로 학습됐으므로 사진 가운데 이 비율(짧은 변 기준)만 잘라 넣는다
+    AI_CENTER_CROP: float = 0.7
     AI_USE_MOCK: bool = True
 
     CORS_ORIGINS: list[str] = ["*"]

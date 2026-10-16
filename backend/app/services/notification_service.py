@@ -55,6 +55,7 @@ def send_scan_complete(endpoint_arn: str, pet_name: str, severity: str) -> None:
         "minor": "경미한 이상이 발견됐어요.",
         "warning": "주의가 필요한 피부 상태예요.",
         "critical": "즉시 진료가 필요할 수 있어요.",
+        "unclassified": "학습된 피부 증상은 감지되지 않았어요.",
     }.get(severity, "스캔이 완료됐어요.")
     send_push(
         endpoint_arn,

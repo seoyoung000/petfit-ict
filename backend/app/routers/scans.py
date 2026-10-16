@@ -1,3 +1,6 @@
+import base64
+import binascii
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from starlette.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
@@ -9,7 +12,10 @@ from app.schemas.scan import ScanResponse, ScanSummary
 from app.routers.auth import get_current_user
 from app.models.user import User
 from app.services.s3_service import upload_image, get_presigned_url
-from app.services.ai_service import run_inference, calculate_health_score, get_severity
+from app.services.ai_service import (
+    run_inference, calculate_health_score, get_severity,
+    ImageQualityError, AIModelUnavailableError,
+)
 from app.services.notification_service import send_scan_complete
 
 router = APIRouter(prefix="/scans", tags=["scans"])
@@ -29,6 +35,8 @@ async def upload_scan(
     pet_id: str = Form(...),
     medication_dispensed: float = Form(0.0),
     file: Optional[UploadFile] = File(None),
+    # 브러쉬(ESP32-CAM)가 BLE로 보낸 사진은 앱에 파일로 저장하지 않고 base64로 바로 올린다.
+    image_base64: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -39,12 +47,27 @@ async def upload_scan(
     image_key = None
     diagnoses = []
 
+    contents: Optional[bytes] = None
     if file:
         contents = await file.read()
-        image_key = upload_image(contents, prefix=f"scans/{pet_id}")
+    elif image_base64:
+        try:
+            contents = base64.b64decode(image_base64, validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=400, detail="이미지 데이터가 올바르지 않습니다.")
+
+    if contents:
         # 동기 TF 추론이라 스레드풀로 넘긴다. 안 그러면 추론하는 동안
         # 이벤트 루프가 막혀서 다른 요청까지 전부 대기하게 된다.
-        diagnoses = await run_in_threadpool(run_inference, contents, pet.species)
+        try:
+            diagnoses = await run_in_threadpool(run_inference, contents, pet.species)
+        except ImageQualityError as e:
+            # 진단할 수 없는 사진이면 기록을 남기지 않고 다시 찍게 한다
+            raise HTTPException(status_code=422, detail=str(e))
+        except AIModelUnavailableError as e:
+            # 모델 파일이 불완전한 상태에서 정상으로 보이는 기록을 만들지 않는다.
+            raise HTTPException(status_code=503, detail=str(e))
+        image_key = upload_image(contents, prefix=f"scans/{pet_id}")
 
     diagnoses_dict = [d.model_dump() for d in diagnoses]
     health_score = calculate_health_score(diagnoses)

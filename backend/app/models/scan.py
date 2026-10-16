@@ -17,7 +17,7 @@ class Scan(Base):
     severity = Column(String, nullable=True)            # normal / minor / warning / critical
 
     # AI diagnosis result stored as JSON list
-    # e.g. [{"condition": "아토피 피부염", "confidence": 0.87, "area": "등", "action": "진료 권장"}]
+    # e.g. [{"condition": "구진·플라크", "confidence": 0.87, "area": "등", "action": "수의사 상담 권장"}]
     diagnoses = Column(JSON, default=list)
 
     medication_dispensed = Column(Float, default=0.0)   # ml dispensed
